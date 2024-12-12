@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   exec.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leonel <leonel@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lscheupl <lscheupl@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 17:41:00 by leonel            #+#    #+#             */
-/*   Updated: 2024/12/07 18:44:49 by leonel           ###   ########.fr       */
+/*   Updated: 2024/12/12 20:27:12 by lscheupl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/minishell.h"
+#include <stdio.h>
 
 void	ft_clean_path(char **tab_path)
 {
@@ -92,6 +93,7 @@ char	*ft_check_access(char **tab_path, char *cmd)
 		res = malloc(sizeof(char) * (ft_strlen(test) + 1));
 		ft_strlcpy(res, test, (ft_strlen(test) + 1));
 	}
+	printf("%s\n", res);
 	return (res);
 }
 char	*ft_isolate_first_word(char *expanded)
@@ -115,18 +117,18 @@ char	*ft_isolate_first_word(char *expanded)
 	return (cmd);
 }
 
-char	*ft_find_path(char *expanded, t_ms *ms)
+char	*ft_find_path(char *expanded, t_ms *ms, t_node_cmd *root)
 {
-	char	**tab_path;
-	char	*path;
-	char	*cmd;
+	char		**tab_path;
+	char		*bin;
+	char		*cmd;
 
+	bin = NULL;
+	root = &ms->ast->cmd;
 	tab_path = ft_isolate_path(ms);
-	cmd = ft_isolate_first_word(expanded);
-	path = ft_check_access(tab_path, cmd);
+	bin = ft_check_access(tab_path, root->args[0]);
 	ft_free_split(tab_path);
-	free(cmd);
-	return (path);
+	return (bin);
 }
 
 void	ft_execve(char *path, char **tab_arg, char **envp)
@@ -136,7 +138,7 @@ void	ft_execve(char *path, char **tab_arg, char **envp)
 	return (ft_putendl_fd("minishell : command not found", 2));
 }
 
-void	exec_cmd(char *input, t_ast *root, int nest, t_ms *ms)
+void	exec_cmd(char *input, t_ast *root, t_ms *ms)
 {
 	int			i;
 	t_node_cmd	*node;
@@ -144,9 +146,12 @@ void	exec_cmd(char *input, t_ast *root, int nest, t_ms *ms)
 	char		*path;
 	pid_t		pid;
 
+	
+
 	node = &(root->cmd);
 	node->expanded = ft_expander(input, node->start, node->end);
-	path = ft_find_path(node->expanded, ms);
+	node->args = ft_split(node->expanded, ' ');
+	path = ft_find_path(node->expanded, ms, node);
 	tab_arg = ft_split(node->expanded, 32);
 	pid = fork();
 	if (pid == -1)
@@ -154,19 +159,14 @@ void	exec_cmd(char *input, t_ast *root, int nest, t_ms *ms)
 	if (pid == 0)
 	{
 		ft_execve(path, tab_arg, ms->envp);
-		exit(NULL);
+		exit(EXIT_SUCCESS);
 	}
 	waitpid(pid, NULL, 0);
 	free(path);
 	ft_free_split(tab_arg);
 }
 
-void    ft_pip_process(t_ast *pipped)
-{
-    pipped->
-}
-
-void	exec_pip(char *input, t_ast *root, int nest, t_ms *ms)
+void	exec_pip(char *input, t_ast *root, t_ms *ms)
 {
 	int			i;
 	t_node_pip	*node;
@@ -174,15 +174,22 @@ void	exec_pip(char *input, t_ast *root, int nest, t_ms *ms)
 	i = 0;
 	node = &(root->pip);
 	printf("pip\n");
+	printf("%s\n __", input);
+	node->pip_redir = malloc((sizeof (int**)));
 	while (i < node->pip_len)
     {
-        ft_pip_process(node->piped[i++])
+		pipe(node->pip_redir[i]);
+		if (i != 0)
+			dup2(node->pip_redir[i][0], STDIN_FILENO);
+		dup2(node->pip_redir[i][1], STDOUT_FILENO);
+		close(node->pip_redir[i][0]);
+		close(node->pip_redir[i][1]);
+        exec_general(input, node->piped[i], ms);
+		i++;
     }
-        // printf("%d\n", i++);
-		// exec_general(input, node->piped[i++], nest - 1, ms);
 }
 
-void	exec_grp(char *input, t_ast *root, int nest, t_ms *ms)
+void	exec_grp(char *input, t_ast *root, t_ms *ms)
 {
 	int			i;
 	t_node_grp	*node;
@@ -190,10 +197,11 @@ void	exec_grp(char *input, t_ast *root, int nest, t_ms *ms)
 	i = 0;
 	node = &(root->grp);
 	printf("grp\n");
-	exec_general(input, node->next, nest - 1, ms);
+	//ft_expander;
+	exec_general(input, node->next, ms);
 }
 
-void	exec_logic(char *input, t_ast *root, int nest, t_ms *ms)
+void	exec_logic(char *input, t_ast *root, t_ms *ms)
 {
 	int				i;
 	t_node_logic	*node;
@@ -201,20 +209,21 @@ void	exec_logic(char *input, t_ast *root, int nest, t_ms *ms)
 	i = 0;
 	node = &(root->logic);
 	printf("logic\n");
-	exec_general(input, node->left, nest - 1, ms);
-	exec_general(input, node->right, nest - 1, ms);
+	exec_general(input, node->left, ms);
+	//if (exec == 1)
+	exec_general(input, node->right, ms);
 }
-void	exec_general(char *input, t_ast *root, int nest, t_ms *ms)
+void	exec_general(char *input, t_ast *root, t_ms *ms)
 {
 	t_node_type node_type;
 
 	node_type = root->type;
 	if (node_type == E_CMD)
-		exec_cmd(input, root, nest, ms);
+		exec_cmd(input, root, ms);
 	else if (node_type == E_LOGIC)
-		exec_logic(input, root, nest, ms);
+		exec_logic(input, root, ms);
 	else if (node_type == E_PIP)
-		exec_pip(input, root, nest, ms);
+		exec_pip(input, root, ms);
 	else
-		exec_grp(input, root, nest, ms);
+		exec_grp(input, root, ms);
 }

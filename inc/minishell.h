@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leonel <leonel@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lscheupl <lscheupl@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:02:04 by linux             #+#    #+#             */
-/*   Updated: 2024/12/07 03:47:16 by leonel           ###   ########.fr       */
+/*   Updated: 2024/12/12 19:23:03 by lscheupl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ void	ms_exec(t_ms *ms);
 void	ms_destroy(t_ms *ms);
 
 // test ///
-void	exec_cmd(char *input, t_ast *root, int nest, t_ms *ms);
-void    exec_general(char *input, t_ast *root, int nest, t_ms *ms);
+void	exec_cmd(char *input, t_ast *root, t_ms *ms);
+void    exec_general(char *input, t_ast *root, t_ms *ms);
 
 
 #endif

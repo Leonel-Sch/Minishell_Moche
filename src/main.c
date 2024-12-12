@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leonel <leonel@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lscheupl <lscheupl@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/02 14:38:52 by parden            #+#    #+#             */
-/*   Updated: 2024/12/07 04:01:41 by leonel           ###   ########.fr       */
+/*   Updated: 2024/12/12 19:23:32 by lscheupl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void	ms_destroy(t_ms *ms)
 void	ms_exec(t_ms *ms)
 {
 	// ast_print(ms->input, ms->ast, 0);
-	exec_general(ms->input, ms->ast, 0, ms);
+	exec_general(ms->input, ms->ast, ms);
 	ast_destroy(ms->ast);
 	ms->ast = NULL;
 	free(ms->input);

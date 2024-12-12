@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ast.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: parden <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: lscheupl <lscheupl@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/30 21:09:08 by parden            #+#    #+#             */
-/*   Updated: 2024/11/27 18:39:23 by parden           ###   ########.fr       */
+/*   Updated: 2024/12/12 17:05:46 by lscheupl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,8 @@ typedef struct s_node_pip {
 
 	int			pip_len;
 	t_ast		**piped;
+	int			redir[2];
+	int			(*pip_redir)[2];
 }				t_node_pip;
 
 typedef struct s_node_grp {
