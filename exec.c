@@ -6,7 +6,7 @@
 /*   By: leonel <leonel@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 17:41:00 by leonel            #+#    #+#             */
-/*   Updated: 2024/12/17 20:27:45 by leonel           ###   ########.fr       */
+/*   Updated: 2024/12/17 19:06:04 by leonel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,8 @@ char	*ft_find_path(char *expanded, t_ms *ms, char **args)
 	bin = NULL;
 	// root = &ms->ast->cmd;
 	tab_path = ft_isolate_path(ms);
+	// fprintf(stderr, "tab_path = %s\n", tab_path[0]);
+	// 	fprintf(stderr, "args = %s\n", args[0]);
 	bin = ft_check_access(tab_path, args[0]);
 	ft_free_split(tab_path);
 	return (bin);
@@ -132,9 +134,12 @@ char	*ft_find_path(char *expanded, t_ms *ms, char **args)
 
 void	ft_execve(char *path, char **tab_arg, char **envp)
 {
-	execve(path, tab_arg, envp);
-	perror("execve");
+	fprintf(stderr, "caca\n");
+	fprintf(stderr, "%d\n", execve(path, tab_arg, envp));
+		// execve(path, tab_arg, envp);
+	fprintf(stderr, "nike\n");
 	exit(EXIT_FAILURE);
+	return (ft_putendl_fd("minishell : command not found", 2));
 }
 
 void	exec_cmd(char *input, t_ast *root, t_ms *ms)
@@ -145,96 +150,73 @@ void	exec_cmd(char *input, t_ast *root, t_ms *ms)
 	char		*path;
 	pid_t		pid;
 
+	
+
 	node = &(root->cmd);
 	node->expanded = ft_expander(input, node->start, node->end);
 	node->args = ft_split(node->expanded, ' ');
+	// printf("cacafg\n");
+	fprintf(stderr,"test");
 	path = ft_find_path(node->expanded, ms, node->args);
 	tab_arg = ft_split(node->expanded, 32);
 	pid = fork();
 	if (pid == -1)
 	{
         perror("fork");
-		ms->status = 1;
         return;
     }
 	if (pid == 0)
 	{
+		fprintf(stderr, "In parent process, waiting for child\n");
 		ft_execve(path, tab_arg, ms->envp);
-		ms->status = 1;
 		exit(EXIT_FAILURE);
 	}
 	waitpid(pid, NULL, 0);
+	fprintf(stderr, "prout\n");
 	free(path);
 	ft_free_split(tab_arg);
-	ms->status = 0;
 }
 
 void	exec_pip(char *input, t_ast *root, t_ms *ms)
 {
 	int			i;
-	int			j;
 	t_node_pip	*node;
 	pid_t		pid;
 
 	i = 0;
-	j = 0;
 	node = &(root->pip);
+	printf("pip\n");
+	printf("input = %s\n", input);
 	node->pip_redir = malloc((sizeof (int[2]) * node->pip_len));
 	while (i < node->pip_len)
 	{
-		if (pipe(node->pip_redir[i]) == -1)
-		{
-			perror("pipe");
-			return;
-		}
+		pipe(node->pip_redir[i]);
 		i++;
 	}
 	i = 0;
 	while (i < node->pip_len)
     {
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("fork");
-			return;
-		}
-		if (pid == 0)
-		{
+		// pid = fork();
+		// if (pid == -1)
+		// 	return ;
+		// if (pid == 0)
+		// {
 			if (i != 0)
-			{
-				dup2(node->pip_redir[i - 1][0], STDIN_FILENO);
-				close(node->pip_redir[i - 1][0]);
-			}
+				dup2(node->pip_redir[i][0], STDIN_FILENO);
 			if (i != node->pip_len - 1)
-			{
 				dup2(node->pip_redir[i][1], STDOUT_FILENO);
-				close(node->pip_redir[i][1]);
-			}
-			while (j < node->pip_len)
-			{
-				close(node->pip_redir[j][0]);
-				close(node->pip_redir[j][1]);
-				j++;
-			}
 	        exec_general(input, node->piped[i], ms);
-			exit(EXIT_FAILURE);
-		}
+		// }
 		i++;
+		// waitpid(pid, NULL, 0);
     }
-	j = 0;
-	while (j < node->pip_len)
-	{
-		close(node->pip_redir[j][0]);
-		close(node->pip_redir[j][1]);
-		j++;
-	}
 	i = 0;
-	while (i < node->pip_len)
-	{
-		waitpid(pid, NULL, 0);
-		i++;
-	}
-	free(node->pip_redir);
+	// while (i < node->pip_len)
+	// {
+	// 	close(node->pip_redir[i][0]);
+	// 	close(node->pip_redir[i][1]);
+	// 	i++;
+	// }
 }
 
 void	exec_grp(char *input, t_ast *root, t_ms *ms)
@@ -258,20 +240,8 @@ void	exec_logic(char *input, t_ast *root, t_ms *ms)
 	node = &(root->logic);
 	printf("logic\n");
 	exec_general(input, node->left, ms);
-	fprintf(stderr, "status: %d\n", ms->status);
-	if (node->is_and)
-	{
-		if (ms->status == 0)
-		{
-			exec_general(input, node->right, ms);
-		}
-	}
-	else
-	{
-		if (ms->status == 1)
-			exec_general(input, node->right, ms);
-	}
-	printf("logic\n");
+	//if (exec == 1)
+	exec_general(input, node->right, ms);
 }
 void	exec_general(char *input, t_ast *root, t_ms *ms)
 {
