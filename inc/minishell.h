@@ -3,21 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: leonel <leonel@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lscheupl <lscheupl@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/29 11:02:04 by linux             #+#    #+#             */
-/*   Updated: 2024/12/17 20:20:49 by leonel           ###   ########.fr       */
+/*   Updated: 2025/01/15 18:36:54 by lscheupl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
 # include <stdio.h>
-# include </../usr/include/readline/readline.h>
-# include </../usr/include/readline/history.h>
+# include <readline/readline.h>
+# include <readline/history.h>
 # include "../libft/libft.h"
 # include "ms_parse.h"
-# include "exec.h"
+# include "sys/wait.h"
 
 # define PROMPT_LEN 5
 
@@ -38,6 +38,6 @@ void	ms_destroy(t_ms *ms);
 // test ///
 void	exec_cmd(char *input, t_ast *root, t_ms *ms);
 void    exec_general(char *input, t_ast *root, t_ms *ms);
-
+char *strndup(const char *s, size_t n);
 
 #endif

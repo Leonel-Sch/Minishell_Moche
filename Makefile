@@ -1,4 +1,4 @@
-CC := cc -g3
+CC := cc #-g
 CFLAGS := -Wall -Wextra #-Werror
 SYSLIB := -lreadline
 LIBFT := libft/libft.a
@@ -14,7 +14,7 @@ OBJ := $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRC))
 all: $(NAME)
 
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(SYSLIB) $^ $(LIBFT) -o $@ -lreadline
+	$(CC) $(CFLAGS) $(SYSLIB) $^ $(LIBFT) -o $@ 
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 	@ mkdir -p $(OBJ_DIR)
